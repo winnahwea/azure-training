@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   #Trigger the workflow on push from the main branch
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 jobs:
   #Test's job
   tests:
