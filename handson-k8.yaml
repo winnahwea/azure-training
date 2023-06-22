@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exist-web
+spec:
+  selector:
+    matchLabels:
+      app: exist-web
+  template:
+    metadata:
+      labels:
+        app: exist-web
+    spec:
+      containers:
+        - name: exist-web
+          image: handson12345.azurecr.io/exist-web
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exist-web
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: exist-web

@@ -37,7 +37,7 @@ jobs:
   build:
     #Depends on sonar's job
     needs: tests
-    name: Build
+    name: Build and Deploy
     #Run on Ubuntu using the latest version
     runs-on: ubuntu-latest
     permissions:
@@ -63,8 +63,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       #Build the application using Maven
-      - name: Build with Maven
-        run: mvn -B package -DskipTests --file pom.xml
+      - name: Build and Push Image with Maven
+        run: mvn -B package jib:build -Djib.to.image=handson12345.azurecr.io/exist-web:${{ github.sha }} -Djib.to.auth.username=${{ secrets.service_principal }} -Djib.to.auth.password=${{ secrets.service_principal_password }} -DskipTests --file pom.xml
       - name: get semantic tag version and release notes from commit messages
         id: tag
         run: |
@@ -94,3 +94,26 @@ jobs:
           artifacts: "target/exist-web.jar"
           bodyFile: "body.log"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Azure login
+        id: login
+        uses: azure/login@v1.4.3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set AKS context
+        id: set-context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: 'handson'
+          cluster-name: 'handson'
+      - name: Setup kubectl
+        id: install-kubectl
+        uses: azure/setup-kubectl@v3
+      - name: Deploy to AKS
+        id: deploy-aks
+        uses: Azure/k8s-deploy@v4
+        with:
+          namespace: '<changeme>'
+          manifests: |
+            handson-k8.yaml
+          images: 'handson12345.azurecr.io/exist-web:${{ github.sha }}'
+          pull-images: false
