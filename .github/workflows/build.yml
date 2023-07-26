@@ -5,7 +5,7 @@ on:
   #Trigger the workflow on push from the main branch
   push:
     tags:
-      - 'v*', 'blue'
+      - 'v*'
 jobs:
   #Test's job
   tests:
@@ -112,7 +112,7 @@ jobs:
         id: deploy-aks
         uses: Azure/k8s-deploy@v4
         with:
-          namespace: 'blue'
+          namespace: '<changeme>'
           manifests: |
             handson-k8.yaml
           images: 'handson12345.azurecr.io/exist-web:${{ github.sha }}'
